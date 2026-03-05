@@ -23,16 +23,25 @@ class Reminder{
     //START of FUNCTION: writeReminder
     fun writeReminder(userKey: String, messageKey: String, message: String){
         val list = message.lowercase().trim().split(" ")
+        val commands = arrayOf("set", "delete")
 
         //START of IF-STATEMENT:
-        if(list[1] == "set"){
-            setReminder(userKey, messageKey, message)
+        if(list[1] in commands){
+            //START of IF-STATEMENT:
+            if(list[1] == "set"){
+                setReminder(userKey, messageKey, message)
+            }//END of IF-STATEMENT
+
+            //START of IF-STATEMENT:
+            if(list[1] == "delete"){
+                removeReminder(userKey, messageKey, message)
+            }//END of IF-STATEMENT
         }//END of IF-STATEMENT
 
-        //START of IF-STATEMENT:
-        if(list[1] == "remove"){
-            removeReminder(userKey, messageKey, message)
-        }//END of IF-STATEMENT
+        //START of ELSE-STATEMENT:
+        else{
+            error(userKey, "command", messageKey, message)
+        }//END of ELSE-STATEMENT
     }//END of FUNCTION: writeReminder
 
     //START of FUNCTION: alert
