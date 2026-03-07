@@ -22,6 +22,7 @@ class Query{
         "my", "your", "his", "her", "their", "our", "someone", "something",
         "other", "they", "them", "that", "this", "these", "those", "give", "know"
     )
+    private val command = setOf("#list", "#reminder", "#contact")
 
     //START of FUNCTION: writeQuery
     fun writeQuery(userKey: String, messageKey: String, message: String){
@@ -203,7 +204,7 @@ class Query{
 
         val foundRequirement = list.mapNotNull{raw ->
             normalizeRequirement(raw)
-                ?.takeIf{req -> seen.add(req)}   // first come first serve
+                ?.takeIf{req -> seen.add(req)}
         }
         val keywords = list.filter{it !in cancel && it !in requirementKey}.toSet()
         val lastKeyword = keywords.lastOrNull() ?: ""
@@ -558,7 +559,7 @@ class Query{
                             Log.d("found message", foundMessage)
 
                             //START of IF-STATEMENT:
-                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?"))){
+                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?") || command.contains(foundList[0]))){
                                 val normalizedKeywords = keywords.map{it.removeSuffix("s")}.toSet()
                                 val normalizedList = foundList.map{it.removeSuffix("s")}.toSet()
                                 val foundAnswer = foundList.filter{word -> word.removeSuffix("s") !in normalizedKeywords && word !in cancel}.joinToString(" ")
@@ -620,7 +621,7 @@ class Query{
                             Log.d("found message", foundMessage)
 
                             //START of IF-STATEMENT:
-                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?"))){
+                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?") || command.contains(foundList[0]))){
                                 val normalizedKeywords = keywords.filter{it !in cancel}.map{it.removeSuffix("s")}.toSet()
 
                                 //START of IF-STATEMENT:
@@ -685,7 +686,7 @@ class Query{
                             Log.d("found message", foundMessage)
 
                             //START of IF-STATEMENT:
-                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?"))){
+                            if(!(foundList.any{it in interrogative} || foundMessage.endsWith("?") || command.contains(foundList[0]))){
                                 val normalizedKeywords = keywords.map{it.removeSuffix("s")}.toSet()
                                 val normalizedList = foundList.map{it.removeSuffix("s")}.toSet()
 
