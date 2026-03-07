@@ -10,7 +10,7 @@ import com.google.firebase.database.database
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.text.lowercase
-git
+
 //START of CLASS: Query
 class Query{
     private val database = Firebase.database
