@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 class Etiquette{
     private val database = Firebase.database
     private val aiKey = "AI - 4"
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeEtiquette
     fun writeEtiquette(userKey: String, messageKey: String, message: String){
@@ -50,6 +51,26 @@ class Etiquette{
             writeFarewell(userKey, messageKey, message)
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeEtiquette
+
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
 
     //START of FUNCTION: writeGreeting
     private fun writeGreeting(userKey: String, messageKey: String, message: String){
@@ -90,9 +111,7 @@ class Etiquette{
 
                             val response = "Don't even fucking talk to me ${user?.username}"
 
-                            messageReference.child(key).setValue(
-                                Message(aiKey, date, time, response)
-                            )
+                            messageReference.child(key).setValue(Message(aiKey, date, time, censor(response)))
                         }//END of FUNCTION: onDataChange
 
                         //START of FUNCTION: onCancelled
@@ -125,11 +144,7 @@ class Etiquette{
         val groupWords = setOf("everyone", "all", "guys", "friends", "team")
 
         //START of IF-STATEMENT:
-        if(words.isNotEmpty() && (
-                    (words[0] == "good" && words.size >= 2 && words[1] in goodGreetings.keys) ||
-                            (words[0] in goodGreetings.keys)
-                    )
-        ){
+        if(words.isNotEmpty() && ((words[0] == "good" && words.size >= 2 && words[1] in goodGreetings.keys) || (words[0] in goodGreetings.keys))){
             val keyWord = if (words[0] == "good") words[1] else words[0]
             val baseGreeting = goodGreetings[keyWord] ?: "Good day"
 
@@ -159,9 +174,7 @@ class Etiquette{
                                 else -> "$baseGreeting ${user?.username}..."
                             }
 
-                            messageReference.child(key).setValue(
-                                Message(aiKey, date, time, response)
-                            )
+                            messageReference.child(key).setValue(Message(aiKey, date, time, censor(response)))
                         }//END of FUNCTION: onDataChange
 
                         //START of FUNCTION: onCancelled
@@ -212,7 +225,7 @@ class Etiquette{
 
                             val response = "${user?.username} is really useless without me huh???"
 
-                            messageReference.child(key).setValue(Message(aiKey, date, time, response))
+                            messageReference.child(key).setValue(Message(aiKey, date, time, censor(response)))
                         }//END of FUNCTION: onDataChange
 
                         //START of FUNCTION: onCancelled
@@ -263,7 +276,7 @@ class Etiquette{
 
                             val response = "Don't fucking come back ${user?.username}..."
 
-                            messageReference.child(key).setValue(Message(aiKey, date, time, response))
+                            messageReference.child(key).setValue(Message(aiKey, date, time, censor(response)))
                         }//END of FUNCTION: onDataChange
 
                         //START of FUNCTION: onCancelled

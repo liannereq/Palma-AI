@@ -22,6 +22,7 @@ class Query{
         "other", "they", "them", "that", "this", "these", "those", "give", "know"
     )
     private val command = setOf("#list", "#reminder", "#contact")
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeQuery
     fun writeQuery(userKey: String, messageKey: String, message: String){
@@ -96,6 +97,26 @@ class Query{
         })
     }//END of FUNCTION
 
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
+
     //START of FUNCTION: queryAI
     private fun queryAI(messageKey: String, message: String){
         val messageReference = database.getReference("Palma/Message/$messageKey")
@@ -142,7 +163,7 @@ class Query{
         }//END of FOR-LOOP
 
         val cleanedPhrase = words
-            .filter { it !in stopWords }
+            .filter{it !in stopWords}
             .joinToString(" ")
             .replace(Regex("\\byour\\b", RegexOption.IGNORE_CASE), "my")
             .replace(Regex("\\byou\\b", RegexOption.IGNORE_CASE), "I")
@@ -171,7 +192,7 @@ class Query{
                     newKey = "message$newIndex"
                 }//END of WHILE-LOOP
 
-                val responseMessage = Message(aiKey, date, time, responseText)
+                val responseMessage = Message(aiKey, date, time, censor(responseText))
                 messageReference.child(newKey).setValue(responseMessage)
             }//END of FUNCTION: onDataChange
 
@@ -279,7 +300,7 @@ class Query{
                                 }
 
                                 Log.d("found answer", foundAnswer)
-                                answers.add(foundAnswer)
+                                answers.add(censor(foundAnswer))
                             }//END of IF-STATEMENT
 
                             foundList.clear()
@@ -301,7 +322,7 @@ class Query{
                             "I don't fucking know $cleaned are."
                         }
 
-                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                     }//END of IF-STATEMENT
 
                     //START of IF-STATEMENT:
@@ -342,13 +363,13 @@ class Query{
                             if(matchCount >= 1){
                                 val message = "Fuck yeah, $foundAnswer.".replaceFirstChar{it.titlecase()}
 
-                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                             }//END of IF-STATEMENT
 
                             //START of ELSE-STATEMENT:
                             else{
                                 val message = "Fuck No, $foundAnswer.".replaceFirstChar{it.titlecase()}
-                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                             }//END of ELSE-STATEMENT
                         }//END of IF-STATEMENT
 
@@ -447,7 +468,7 @@ class Query{
                                     "I don't fucking know $cleaned is."
                                 }
 
-                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                                messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                             }
                         }//END of IF-STATEMENT
 
@@ -588,7 +609,7 @@ class Query{
                         }
                         val pluralKeyword = if (lastKeyword.endsWith("s")) lastKeyword else lastKeyword + "s"
                         message = "$pluralKeyword are fucking $joined.".replaceFirstChar{it.titlecase()}
-                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                     }//END of IF-STATEMENT
 
                     //START of ELSE-STATEMENT:
@@ -596,7 +617,7 @@ class Query{
                         //START of IF-STATEMENT:
                         if((classification != "ai") && (classification != "user")){
                             message = "I don't fucking know $cleaned are."
-                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                         }//END of IF-STATEMENT
 
                         //START of IF-STATEMENT:
@@ -662,7 +683,7 @@ class Query{
                             message = "Fuck No, $replaced.".replaceFirstChar{it.titlecase()}
                         }//END of IF-STATEMENT
 
-                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                     }//END of IF-STATEMENT
 
                     //START of ELSE-STATEMENT:
@@ -670,7 +691,7 @@ class Query{
                         //START of IF-STATEMENT:
                         if((classification != "ai") && (classification != "user")){
                             message = "I don't fucking know $cleaned."
-                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                         }//END of IF-STATEMENT
 
                         //START of IF-STATEMENT:
@@ -727,7 +748,7 @@ class Query{
                             .replace(Regex("\\bme\\b", RegexOption.IGNORE_CASE), "you")
 
                         message = "${replaced.replaceFirstChar{it.titlecase()}}, Fucking dumbass."
-                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                        messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                     }//END of IF-STATEMENT
 
                     //START of ELSE-STATEMENT:
@@ -735,7 +756,7 @@ class Query{
                         //START of IF-STATEMENT:
                         if((classification != "ai") && (classification != "user")){
                             message = "I don't fucking know $cleaned is."
-                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, message))
+                            messageReference.child(newLogKey).setValue(Message(aiKey, date, time, censor(message)))
                         }//END of IF-STATEMENT
 
                         //START of IF-STATEMENT:

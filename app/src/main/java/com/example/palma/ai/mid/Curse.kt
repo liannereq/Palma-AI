@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 class Curse{
     private val database = Firebase.database
     private val aiKey = "AI - 4"
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeCurse
     fun writeCurse(userKey: String, messageKey: String, message: String){
@@ -50,6 +51,26 @@ class Curse{
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeCurse
 
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
+
     //START of FUNCTION: writeAnger
     private fun writeAnger(userKey: String, messageKey: String, message: String){
         val userReference = database.getReference("Palma/User/$userKey/Personal Information")
@@ -84,7 +105,7 @@ class Curse{
                             //START of IF-STATEMENT:
                             if(foundCurse in anger){
                                 val curse = setOf("$username, seriously $foundCurse!", "Wow $username, that was $foundCurse!", "I can't believe you just $foundCurse $username!", "Really, $username? $foundCurse!", "$username, only a $foundCurse would say that!")
-                                val message = Message(aiKey, date, time, curse.random())
+                                val message = Message(aiKey, date, time, censor(curse.random()))
                                 messageReference.child(key).setValue(message)
                                 key = "message${index++}"
                             }//END of IF-STATEMENT
@@ -133,7 +154,7 @@ class Curse{
                             //START of IF-STATEMENT:
                             if(foundCurse in jerk){
                                 val curse = setOf("$username you $foundCurse", "What a $foundCurse $username", "$username seriously $foundCurse", "Only a $foundCurse like you $username", "$username stop being such a $foundCurse", "You got some nerve calling me a $foundCurse $username")
-                                val message = Message(aiKey, date, time, curse.random())
+                                val message = Message(aiKey, date, time, censor(curse.random()))
                                 messageReference.child(key).setValue(message)
                                 key = "message${index++}"
                             }//END of IF-STATEMENT
@@ -182,7 +203,7 @@ class Curse{
                             //START of IF-STATEMENT:
                             if(foundCurse in coward){
                                 val curse = setOf("$username what a $foundCurse", "Stop being a $foundCurse $username", "$username always such a $foundCurse", "Look at you $username $foundCurse", "Don’t act like a $foundCurse $username", "Don't you dare call me a $foundCurse $username")
-                                val message = Message(aiKey, date, time, curse.random())
+                                val message = Message(aiKey, date, time, censor(curse.random()))
                                 messageReference.child(key).setValue(message)
                                 key = "message${index++}"
                             }//END of IF-STATEMENT
@@ -231,7 +252,7 @@ class Curse{
                             //START of IF-STATEMENT:
                             if(foundCurse in crude){
                                 val curse = setOf("$username $foundCurse", "You $foundCurse $username", "$username that’s so $foundCurse", "Only a $foundCurse like $username would totally do that", "$username totally $foundCurse", "How dare you call me a $foundCurse $username")
-                                val message = Message(aiKey, date, time, curse.random())
+                                val message = Message(aiKey, date, time, censor(curse.random()))
                                 messageReference.child(key).setValue(message)
                                 key = "message${index++}"
                             }//END of IF-STATEMENT
@@ -280,7 +301,7 @@ class Curse{
                             //START of IF-STATEMENT:
                             if(foundCurse in mild){
                                 val curse = setOf("$username $foundCurse", "$foundCurse $username", "$username what a $foundCurse mess", "Oh $foundCurse $username", "$username that’s $foundCurse ridiculous")
-                                val message = Message(aiKey, date, time, curse.random())
+                                val message = Message(aiKey, date, time, censor(curse.random()))
                                 messageReference.child(key).setValue(message)
                                 key = "message${index++}"
                             }//END of IF-STATEMENT

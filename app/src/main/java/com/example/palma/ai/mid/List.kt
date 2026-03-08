@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter
 class List{
     private val database = Firebase.database
     private val aiKey = "AI - 4"
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeList
     fun writeList(userKey: String, messageKey: String, message: String){
@@ -30,6 +31,26 @@ class List{
             writeContact(userKey, messageKey)
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeList
+
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
 
     //START of FUNCTION: writeCommand
     private fun writeCommand(userKey: String, messageKey: String){
@@ -82,7 +103,7 @@ class List{
         val contactReference = database.getReference("Palma/User/$userKey/Contact")
         val messageReference = database.getReference("Palma/Message/$messageKey")
 
-        userReference.get().addOnSuccessListener { snapshot ->
+        userReference.get().addOnSuccessListener{ snapshot ->
             val user = snapshot.getValue(User::class.java)
 
             messageReference.addListenerForSingleValueEvent(object : ValueEventListener{
@@ -90,7 +111,7 @@ class List{
                 override fun onDataChange(messageSnapshot: DataSnapshot){
                     contactReference.get().addOnSuccessListener { contactSnapshot ->
                         val contactList = mutableListOf<String>()
-                        contactList.add("List of ${user?.username}\'s Contact/s:")
+                        contactList.add(censor("Your fucking ${user?.username}\'s Contact/s:"))
 
                         //START of FOR-LOOP:
                         for(contact in contactSnapshot.children){
@@ -163,7 +184,7 @@ class List{
                         response = "Don't fucking make me load $list list again..."
                     }//END of IF-STATEMENT
 
-                    val message = Message(aiKey, date, time, response)
+                    val message = Message(aiKey, date, time, censor(response))
                     messageReference.child(key).setValue(message)
                 }//END of FUNCTION: onDataChange
 

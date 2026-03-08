@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter
 //START of CLASS: Mid
 class Mid{
     private val database = Firebase.database
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeMid
     fun writeMid(userKey: String, username: String): Task<Void> {
@@ -23,7 +24,7 @@ class Mid{
 
         return messageReference.get().continueWithTask { messageTask ->
             //START of IF-STATEMENT:
-            if (!messageTask.isSuccessful) {
+            if(!messageTask.isSuccessful){
                 throw messageTask.exception ?: Exception("Failed to fetch messages")
             }//END of IF-STATEMENT
 
@@ -32,14 +33,14 @@ class Mid{
             var messageKey = "Message - $index"
 
             //START of WHILE-LOOP:
-            while(snapshot.hasChild(messageKey)) {
+            while(snapshot.hasChild(messageKey)){
                 index++
                 messageKey = "Message - $index"
             }//END of WHILE-LOOP
 
-            contactReference.get().continueWithTask { contactTask ->
+            contactReference.get().continueWithTask{ contactTask ->
                 //START of IF-STATEMENT:
-                if (!contactTask.isSuccessful) {
+                if(!contactTask.isSuccessful){
                     throw contactTask.exception ?: Exception("Failed to fetch contacts")
                 }//END of IF-STATEMENT
 
@@ -48,28 +49,47 @@ class Mid{
                 var contactKey = "Contact - $index"
 
                 //START of WHILE-LOOP:
-                while (contactSnapshot.hasChild(contactKey)) {
+                while(contactSnapshot.hasChild(contactKey)){
                     index++
                     contactKey = "Contact - $index"
                 }//END of WHILE-LOOP
 
                 val contact = Contact(messageKey, "Mid", "44444", "mid@ai.com", "ai")
-                val message = Message("AI - 4", date, time, "I am Mid, you better fucking remember that $username")
+                val message = "I am Mid, you better fucking remember that $username"
 
                 val contactTaskRef = contactReference.child(contactKey).setValue(contact)
-                val messageTaskRef = messageReference.child("$messageKey/message1").setValue(message)
+                val messageTaskRef = messageReference.child("$messageKey/message1").setValue(Message("AI - 4", date, time, censor(message)))
 
                 return@continueWithTask Tasks.whenAll(contactTaskRef, messageTaskRef)
             }
         }
     }//END of FUNCTION: writeMid
 
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
+
     //START of FUNCTION: writeMessage
     fun writeMessage(userKey: String, messageKey: String, message: String){
         val list = message.lowercase().replace(Regex("[^a-z0-9\\s@]"), "").trim().split(Regex("\\s+"))
         val queryKey = setOf("who", "whose", "what", "what's", "whats", "where", "when", "why", "how", "do", "does", "did", "can", "could", "is", "are", "will", "would", "should", "shall", "give")
         val etiquetteKey = setOf("hello", "hi", "hey", "greetings", "morning", "afternoon", "evening", "night", "thank", "thanks", "bye", "goodbye", "goodnight", "later", "see", "take", "farewell")
-        val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
         val forecastKey = setOf("forecast", "weather", "temperature")
 
         //START of IF-STATEMENT:

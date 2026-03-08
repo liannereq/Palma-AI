@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 class Greeting{
     private val database = Firebase.database
     private val aiKey = "AI - 4"
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeGreeting
     fun writeGreeting(userKey: String, messageKey: String){
@@ -40,9 +41,7 @@ class Greeting{
 
                     val greeting = "You're getting fucking old ${user?.username}"
 
-                    messageReference.child(key).setValue(
-                        Greeting(aiKey, date, time, greeting, "true")
-                    )
+                    messageReference.child(key).setValue(Greeting(aiKey, date, time, censor(greeting), "true"))
                 }//END of FUNCTION: onDataChange
 
                 //START of FUNCTION: onCancelled
@@ -51,4 +50,24 @@ class Greeting{
             })
         }
     }//END of FUNCTION: writeGreeting
+
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
 }//END of CLASS: Greeting

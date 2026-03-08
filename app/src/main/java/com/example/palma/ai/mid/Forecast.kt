@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 class Forecast{
     private val database = Firebase.database
     private val aiKey = "AI - 4"
+    private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeForecast
     fun writeForecast(userKey: String, messageKey: String, message: String){
@@ -48,6 +49,26 @@ class Forecast{
             Query().writeQuery(userKey, messageKey, message)
         }//END of ELSE-STATEMENT
     }//END of FUNCTION: writeForecast
+
+    //START of FUNCTION: censor
+    private fun censor(message: String): String{
+        var censored = message
+
+        curseKey.forEach{ curse ->
+            val regex = Regex("\\b$curse\\b", RegexOption.IGNORE_CASE)
+            censored = censored.replace(regex){
+                val word = it.value
+                val middle = buildString{
+                    repeat(word.length - 2){
+                        append("!@#$%^&*?".random())
+                    }
+                }
+                if(word.length > 2) "${word.first()}$middle${word.last()}" else word
+            }
+        }
+
+        return censored
+    }//END of FUNCTION
 
     //START of FUNCTION: currentForecast
     private fun currentForecast(userKey: String, messageKey: String, message: String){
@@ -170,7 +191,7 @@ class Forecast{
                                 forecast = "Unable to fetch current weather."
                             }//END of ELSE-STATEMENT
 
-                            val message = Message(aiKey, date, time, forecast)
+                            val message = Message(aiKey, date, time, censor(forecast))
                             messageReference.child(key).setValue(message)
                         }//END of FUNCTION: onResponse
 
@@ -343,7 +364,7 @@ class Forecast{
                                 forecast = "Unable to fetch past weather."
                             }//END of ELSE-STATEMENT:
 
-                            val message = Message(aiKey, date, time, forecast)
+                            val message = Message(aiKey, date, time, censor(forecast))
                             messageReference.child(key).setValue(message)
                         }//END of FUNCTION: onResponse
 
@@ -497,7 +518,7 @@ class Forecast{
                                 forecast = "Unable to fetch future weather."
                             }//END of ELSE-STATEMENT
 
-                            val message = Message(aiKey, date, time, forecast)
+                            val message = Message(aiKey, date, time, censor(forecast))
                             messageReference.child(key).setValue(message)
                         }//END of FUNCTION: onResponse
 
