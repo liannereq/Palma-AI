@@ -67,7 +67,7 @@ class Palma{
     //START of FUNCTION: writeMessage
     fun writeMessage(userKey: String, messageKey: String, message: String){
         val list = message.lowercase().replace(Regex("[^a-z0-9\\s@]"), "").trim().split(Regex("\\s+"))
-        val queryKey = setOf("who", "whose", "what", "what's", "whats", "where", "when", "why", "how", "do", "does", "did", "can", "could", "is", "are", "will", "would", "should", "shall", "give")
+        val queryKey = setOf("what", "whats", "what's", "when", "where", "which", "who", "whom", "whose", "why", "how")
         val etiquetteKey = setOf("hello", "hi", "hey", "greetings","morning", "afternoon", "evening", "night", "thank", "thanks", "bye", "goodbye", "goodnight", "later", "see", "take", "farewell")
         val forecastKey = setOf("forecast", "weather", "temperature")
 

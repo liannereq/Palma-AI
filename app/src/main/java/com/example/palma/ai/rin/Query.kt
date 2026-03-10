@@ -31,7 +31,7 @@ class Query{
         val ai = setOf("you", "your", "you're")
         val userDataFields = setOf("username", "user", "name", "birthdate", "birthday", "birth", "gender", "sex", "email", "mail", "address", "mobile", "phone", "number", "contact")
         val queries = mutableListOf<String>()
-        val messages = message.lowercase().split(Regex("[?.!]+")).map{it.trim()}.filter{it.isNotEmpty()}
+        val messages = message.lowercase().split(Regex("[?]+")).map{it.trim()}.filter{it.isNotEmpty()}
 
         //START of FOR-LOOP:
         for(foundMessage in messages){
