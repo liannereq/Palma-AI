@@ -996,7 +996,7 @@ class Contact{
                 }//END of ELSE-STATEMENT
             }
         }//END of IF-STATEMENT
-    }//END of FUNCTION: addUser//ignore
+    }//END of FUNCTION: addUser
 
     //START of FUNCTION: removeAI
     private fun removeAI(userKey: String, messageKey: String, message: String){
