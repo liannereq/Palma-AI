@@ -854,6 +854,7 @@ class Contact{
         val list = message.trim().split(" ")
         val add = list[3].trim()
         var addUsername = ""
+        var isAdded = false
 
         contactReference.get().addOnSuccessListener{ contactSnapshot ->
             //START of FOR-LOOP:
@@ -940,7 +941,7 @@ class Contact{
                                                         val memberData = member.getValue(Member::class.java)
                                                         newContactRef.child("Member/$memberKey").setValue(memberData)
                                                     }
-                                                }
+                                                }.addOnSuccessListener{isAdded = true}
 
                                                 newContactRef.child("Member/$newMemberKey").setValue(Member(personal.child("username").getValue(String::class.java).toString(), personal.child("mobile").getValue(String::class.java).toString(), personal.child("email").getValue(String::class.java).toString(), "user"))
                                             }
@@ -984,7 +985,15 @@ class Contact{
                     }//END of IF-STATEMENT
                 }//END of FOR-LOOP
 
-                success(userKey, "add", messageKey, addUsername)
+                //START of IF-STATEMENT:
+                if(isAdded){
+                    success(userKey, "add", messageKey, addUsername)
+                }//END of IF-STATEMENT
+
+                //START of ELSE-STATEMENT:
+                else{
+                    error(userKey, "email", messageKey, message)
+                }//END of ELSE-STATEMENT
             }
         }//END of IF-STATEMENT
     }//END of FUNCTION: addUser
@@ -1232,7 +1241,15 @@ class Contact{
                                 }//END of IF-STATEMENT
                             }
 
-                            success(userKey, "remove", messageKey, removeUsername)
+                            //START of IF-STATEMENT:
+                            if(removeUsername.isNotBlank()){
+                                success(userKey, "remove", messageKey, removeUsername)
+                            }//END of IF-STATEMENT
+
+                            //START of ELSE-STATEMENT:
+                            else{
+                                error(userKey, "email", messageKey, message)
+                            }//END of ELSE-STATEMENT
                         }
 
                         break
