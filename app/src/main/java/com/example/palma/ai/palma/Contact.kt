@@ -714,7 +714,7 @@ class Contact{
                 error(userKey, "email", messageKey, message)
             }//END of ELSE-STATEMENT
         }
-    }//END of FUNCTION: addUser
+    }//END of FUNCTION: addUser//ignore
 
     //START of FUNCTION: removeAI
     private fun removeAI(userKey: String, messageKey: String, message: String){
