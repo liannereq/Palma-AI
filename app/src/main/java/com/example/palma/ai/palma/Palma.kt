@@ -73,5 +73,11 @@ class Palma{
 
         Log.d("token count", countToken.toString())
         Log.d("character count", countCharacter.toString())
+
+        val context = classifyContext(prompt)
     }//END of FUNCTION: writeMessage
+
+    //START of FUNCTION: classifyContext
+    private fun classifyContext(prompt: String){
+    }//END of FUNCTION: classifyContext
 }//END of CLASS: Palma
