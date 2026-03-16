@@ -25,13 +25,18 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        jvmToolchain(21)
+        compilerOptions {
+            allWarningsAsErrors.set(false)
+        }
     }
+
     buildFeatures {
         viewBinding = true
     }
@@ -52,6 +57,8 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("org.tensorflow:tensorflow-lite:2.12.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     testImplementation(libs.junit)

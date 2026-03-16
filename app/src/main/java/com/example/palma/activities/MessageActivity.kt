@@ -566,7 +566,7 @@ class MessageActivity : AppCompatActivity() {
 
                     //START of IF-STATEMENT:
                     if(type == "ai"){
-                        AI().writeAI(userKey, messageKey, username, message)
+                        AI().writeAI(this@MessageActivity, userKey, messageKey, username, message)
                     }//END of IF-STATEMENT
 
                     //START of IF-STATEMENT:
@@ -580,7 +580,7 @@ class MessageActivity : AppCompatActivity() {
                                     //START of IF-STATEMENT:
                                     if(member.child("type").getValue(String::class.java) == "ai"){
                                         delay(6000)
-                                        AI().writeAI(userKey, messageKey, member.child("username").getValue(String::class.java).toString(), message)
+                                        AI().writeAI(this@MessageActivity, userKey, messageKey, member.child("username").getValue(String::class.java).toString(), message)
                                     }//END of IF-STATEMENT
                                 }//END of FOR-LOOP
                             } catch (e: Exception){

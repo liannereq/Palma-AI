@@ -1,6 +1,11 @@
 package com.example.palma.ai.pinky
 
-import android.util.Log
+import android.content.Context
+import com.example.palma.ai.Classification
+import com.example.palma.ai.palma.Command
+import com.example.palma.ai.palma.Etiquette
+import com.example.palma.ai.palma.Forecast
+import com.example.palma.ai.palma.Query
 import com.example.palma.models.Contact
 import com.example.palma.models.Message
 import com.google.android.gms.tasks.Task
@@ -66,15 +71,8 @@ class Pinky{
     }//END of FUNCTION: writePinky
 
     //START of FUNCTION: writeMessage
-    fun writeMessage(userKey: String, messageKey: String, prompt: String){
-        val list = Regex("[A-Za-z]+|\\d+|[-.,!?;:]").findAll(prompt).map{it.value}.toList()
-        val countToken = list.size
-        val countCharacter = prompt.length
-
-        Log.d("token count", countToken.toString())
-        Log.d("character count", countCharacter.toString())
-
-        val context = classifyContext(prompt)
+    fun writeMessage(context: Context, userKey: String, messageKey: String, prompt: String){
+        val context = Classification(context).classifyContext(prompt)
 
         //START of IF-STATEMENT:
         if(context == "etiquette"){
@@ -96,9 +94,4 @@ class Pinky{
             Command().writeCommand(userKey, messageKey, prompt)
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeMessage
-
-    //START of FUNCTION: classifyContext
-    private fun classifyContext(prompt: String): String{
-        return ""
-    }//END of FUNCTION: classifyContext
 }//END of CLASS: Pinky
