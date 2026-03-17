@@ -1,12 +1,17 @@
 package com.example.palma.ai.pinky
 
+import android.content.Context
+import com.example.palma.ai.Classification
+
 //START of CLASS: Command
 class Command{
     //START of FUNCTION: writeCommand:
-    fun writeCommand(userKey: String, messageKey: String, message: String){
+    fun writeCommand(context: Context, userKey: String, messageKey: String, prompt: String){
+        val command = Classification(context).classifyCommand(prompt)
+
         //START of IF-STATEMENT
-        if(message.lowercase().trim().startsWith("#list")){
-            List().writeList(userKey, messageKey, message)
+        if(command == "list"){
+            List().writeList(userKey, messageKey, prompt)
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeCommand
 }//END of CLASS: Command

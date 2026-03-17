@@ -72,26 +72,26 @@ class Rin{
 
     //START of FUNCTION: writeMessage
     fun writeMessage(context: Context, userKey: String, messageKey: String, prompt: String){
-        val context = Classification(context).classifyContext(prompt)
+        val classification = Classification(context).classifyContext(prompt)
 
         //START of IF-STATEMENT:
-        if(context == "etiquette"){
+        if(classification == "etiquette"){
             Etiquette().writeEtiquette(userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
-        if(context == "forecast"){
+        if(classification == "forecast"){
             Forecast().writeForecast(userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
-        if(context == "query"){
+        if(classification == "query"){
             Query().writeQuery(userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
-        if(context == "command"){
-            Command().writeCommand(userKey, messageKey, prompt)
+        if(classification == "command"){
+            Command().writeCommand(context, userKey, messageKey, prompt)
         }//END of IF-STATEMENT
     }//END of FUNCTION: writeMessage
 }//END of CLASS: Rin
