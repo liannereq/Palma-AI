@@ -1,7 +1,7 @@
 package com.example.palma.ai.pinky
 
 import android.content.Context
-import com.example.palma.ai.Classification
+import com.example.palma.ai.TensorFlow.Classification
 import com.example.palma.ai.palma.Command
 import com.example.palma.ai.palma.Etiquette
 import com.example.palma.ai.palma.Forecast
@@ -81,12 +81,12 @@ class Pinky{
 
         //START of IF-STATEMENT:
         if(classification == "forecast"){
-            Forecast().writeForecast(userKey, messageKey, prompt)
+            Forecast().writeForecast(context, userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
         if(classification == "query"){
-            Query().writeQuery(userKey, messageKey, prompt)
+            Query().writeQuery(context, userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:

@@ -1,7 +1,7 @@
 package com.example.palma.ai.palma
 
 import android.content.Context
-import com.example.palma.ai.Classification
+import com.example.palma.ai.TensorFlow.Classification
 import com.example.palma.models.Contact
 import com.example.palma.models.Message
 import com.google.android.gms.tasks.Task
@@ -77,12 +77,12 @@ class Palma{
 
         //START of IF-STATEMENT:
         if(classification == "forecast"){
-            Forecast().writeForecast(userKey, messageKey, prompt)
+            Forecast().writeForecast(context, userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
         if(classification == "query"){
-            Query().writeQuery(userKey, messageKey, prompt)
+            Query().writeQuery(context, userKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:

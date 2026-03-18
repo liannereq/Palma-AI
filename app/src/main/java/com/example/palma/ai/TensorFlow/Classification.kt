@@ -1,4 +1,4 @@
-package com.example.palma.ai
+package com.example.palma.ai.TensorFlow
 
 import android.util.Log
 import android.content.Context
@@ -26,8 +26,8 @@ class Classification(context: Context){
             return "query"
         }//END of IF-STATEMENT
 
-        val list = Regex("[A-Za-z]+|\\d+|[-.,!?;:]").findAll(prompt).map { it.value }.toList()
-        val countToken = list.size
+        val tokens = Regex("\\S+").findAll(prompt).map { it.value }.toList()
+        val countToken = tokens.size
         val countCharacter = prompt.length
 
         Log.d("token count", countToken.toString())
@@ -36,7 +36,7 @@ class Classification(context: Context){
         val inputFeatures = arrayOf(floatArrayOf(countToken.toFloat(), countCharacter.toFloat()))
         val output = Array(1){FloatArray(4)}
 
-        //START of TRY:
+        //START of TRY
         try{
             contextInterpreter.run(inputFeatures, output)
         }//END of TRY
@@ -44,22 +44,22 @@ class Classification(context: Context){
         //START of CATCH:
         catch(e: Exception){
             Log.e("TF", "Interpreter run failed: ${e.message}")
-            return "query"
+            return "none"
         }//END of CATCH
 
-        val prediction = output[0].indices.maxByOrNull{output[0][it]} ?: 0
+        val prediction = output[0].indices.maxByOrNull{output[0][it]} ?: 2
 
-        this.classification = when(prediction){
+        val classification = when(prediction){
             0 -> "command"
             1 -> "etiquette"
             2 -> "query"
             3 -> "forecast"
-            else -> "default"
+            else -> "none"
         }
 
-        Log.d("context classification", this.classification)
+        Log.d("context classification", classification)
         return classification
-    }//END of FUNCTION: classifyContext
+    }
 
     //START of FUNCTION: interpretContext
     private fun interpretContext(context: Context, fileName: String): Interpreter{
@@ -72,8 +72,7 @@ class Classification(context: Context){
 
         inputStream.close()
 
-        val options = Interpreter.Options().apply{setNumThreads(2)}
-
+        val options = Interpreter.Options().apply { setNumThreads(2) }
         return Interpreter(buffer, options)
     }//END of FUNCTION: interpretContext
 
@@ -108,15 +107,15 @@ class Classification(context: Context){
 
         val prediction = output[0].indices.maxByOrNull{output[0][it]} ?: 3
 
-        val result = when(prediction){
+        this.classification = when(prediction){
             0 -> "list"
             1 -> "reminder"
             2 -> "contact"
             else -> "default"
         }
 
-        Log.d("command classification", result)
-        return result
+        Log.d("command classification", this.classification)
+        return this.classification
     }//END of FUNCTION: classifyCommand
 
     //START of FUNCTION: interpretCommand

@@ -1,5 +1,6 @@
 package com.example.palma.ai.rin
 
+import android.content.Context
 import com.example.palma.models.Message
 import com.example.palma.models.WeatherResponse
 import com.example.palma.api.WeatherApiClient
@@ -22,7 +23,7 @@ class Forecast{
     private val aiKey = "AI - 5"
 
     //START of FUNCTION: writeForecast
-    fun writeForecast(userKey: String, messageKey: String, message: String){
+    fun writeForecast(context: Context, userKey: String, messageKey: String, message: String){
         val list = message.lowercase().replace(Regex("[^a-z0-9\\s]"), "").trim().split(Regex("\\s+"))
         val currentKey = setOf("current", "now", "today")
         val pastKey = setOf("past", "yesterday", "before", "ago")
@@ -45,7 +46,7 @@ class Forecast{
 
         //START of ELSE-STATEMENT:
         else{
-            Query().writeQuery(userKey, messageKey, message)
+            Query().writeQuery(context, userKey, messageKey, message)
         }//END of ELSE-STATEMENT
     }//END of FUNCTION: writeForecast
 

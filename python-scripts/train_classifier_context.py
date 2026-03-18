@@ -1,123 +1,107 @@
 import numpy as np
 import tensorflow as tf
-import pickle
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, GlobalAveragePooling1D, Dense
-from tensorflow.keras.utils import to_categorical
+
+print("🚀 Starting training for context classifier...")
 
 # ------------------------
-# 1️⃣ Improved Context Dataset
+# 1️⃣ Dataset (Improved)
 # ------------------------
 texts = [
-
     # COMMAND
     "add milk to my list",
-    "remind me at 7 pm",
-    "delete john from contacts",
+    "create a new list",
+    "delete my grocery list",
+    "set a reminder at 5 pm",
+    "remind me tomorrow",
+    "add john to contacts",
+    "delete contact named mike",
     "turn off the lights",
     "play music",
-    "create a reminder",
-    "set alarm for morning",
+    "create a new task",
     "remove bread from my list",
+    "set alarm for morning",
 
     # ETIQUETTE
-    "hi",
-    "hello",
-    "hey",
-    "good morning",
-    "thank you",
-    "thanks a lot",
-    "how are you",
+    "hi", "hello", "hey", "good morning", "good evening",
+    "thank you", "thanks a lot", "how are you", "greetings",
 
-    # QUERY
-    "what time is it",
-    "who is the president",
-    "where is the nearest store",
-    "how does this work",
-    "what is the weather today",
-    "can you tell me the news",
+    # QUERY (improved & expanded)
+    "what is my username",
+    "show my email",
+    "what is my phone number",
+    "tell me my address",
+    "what is the AI's name",
+    "show AI's email",
+    "what is the AI's contact number",
+    "tell me the AI's address",
+    "tell me about cats",
+    "what do you know about dogs",
+    "give me information on quantum physics",
+    "what do you know about Python programming",
 
     # FORECAST
     "it will rain tomorrow",
     "stock prices will rise",
     "the weather will be hot",
     "traffic will be heavy",
-    "temperature will drop tonight"
+    "temperature will drop tonight",
 ]
 
-labels_text = [
-
-    # COMMAND
-    "command","command","command","command","command","command","command","command",
-
-    # ETIQUETTE
-    "etiquette","etiquette","etiquette","etiquette","etiquette","etiquette","etiquette",
-
-    # QUERY
-    "query","query","query","query","query","query",
-
-    # FORECAST
-    "forecast","forecast","forecast","forecast","forecast"
-]
+labels_text = (
+    ["command"] * 12 +
+    ["etiquette"] * 9 +
+    ["query"] * 12 +  # increased queries
+    ["forecast"] * 5
+)
 
 # ------------------------
-# 2️⃣ Label Encoding
+# 2️⃣ Encode labels
 # ------------------------
 label_map = {"command": 0, "etiquette": 1, "query": 2, "forecast": 3}
 labels = np.array([label_map[l] for l in labels_text])
-labels = to_categorical(labels, num_classes=4)
+labels = tf.keras.utils.to_categorical(labels, num_classes=4)
 
 # ------------------------
-# 3️⃣ Tokenize & Pad
+# 3️⃣ Create numeric features
 # ------------------------
-vocab_size = 1000
-max_length = 12
-embedding_dim = 32
+# Simple numeric features: number of tokens and number of characters
+def feature_vector(text):
+    tokens = text.split()
+    return [len(tokens), len(text)]
 
-texts = [t.lower() for t in texts]
-
-tokenizer = Tokenizer(num_words=vocab_size, oov_token="<OOV>")
-tokenizer.fit_on_texts(texts)
-
-sequences = tokenizer.texts_to_sequences(texts)
-padded = pad_sequences(sequences, maxlen=max_length, padding='post')
-
-# Save tokenizer for Android
-with open("context_tokenizer.pkl", "wb") as f:
-    pickle.dump(tokenizer, f)
+X = np.array([feature_vector(t) for t in texts], dtype=np.float32)
 
 # ------------------------
-# 4️⃣ Build Model
+# 4️⃣ Build model
 # ------------------------
-model = Sequential([
-    Embedding(vocab_size, embedding_dim, input_length=max_length),
-    GlobalAveragePooling1D(),
-    Dense(32, activation='relu'),
-    Dense(16, activation='relu'),
-    Dense(4, activation='softmax')
+model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(2,)),  # 2 numeric features
+    tf.keras.layers.Dense(32, activation='relu'),  # slightly larger for improved capacity
+    tf.keras.layers.Dense(16, activation='relu'),
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 model.compile(
-    loss='categorical_crossentropy',
     optimizer='adam',
+    loss='categorical_crossentropy',
     metrics=['accuracy']
 )
 
 # ------------------------
-# 5️⃣ Train Model
+# 5️⃣ Train model
 # ------------------------
-model.fit(padded, labels, epochs=120, verbose=2)
+model.fit(X, labels, epochs=120, verbose=2)  # slightly more epochs
 
 # ------------------------
 # 6️⃣ Convert to TFLite
 # ------------------------
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
+converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
+converter.inference_input_type = tf.float32
+converter.inference_output_type = tf.float32
 tflite_model = converter.convert()
 
 with open("context_classifier.tflite", "wb") as f:
     f.write(tflite_model)
 
-print("✅ Model exported as context_classifier.tflite")
-print("✅ Tokenizer saved as context_tokenizer.pkl")
+print("✅ TFLite model saved as context_classifier.tflite")

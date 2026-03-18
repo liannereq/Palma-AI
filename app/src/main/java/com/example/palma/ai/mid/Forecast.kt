@@ -1,5 +1,6 @@
 package com.example.palma.ai.mid
 
+import android.content.Context
 import com.example.palma.models.Message
 import com.example.palma.models.WeatherResponse
 import com.example.palma.api.WeatherApiClient
@@ -23,7 +24,7 @@ class Forecast{
     private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeForecast
-    fun writeForecast(userKey: String, messageKey: String, message: String){
+    fun writeForecast(context: Context, userKey: String, messageKey: String, message: String){
         val list = message.lowercase().replace(Regex("[^a-z0-9\\s]"), "").trim().split(Regex("\\s+"))
         val currentKey = setOf("current", "now", "today")
         val pastKey = setOf("past", "yesterday", "before", "ago")
@@ -46,7 +47,7 @@ class Forecast{
 
         //START of ELSE-STATEMENT:
         else{
-            Query().writeQuery(userKey, messageKey, message)
+            Query().writeQuery(context, userKey, messageKey, message)
         }//END of ELSE-STATEMENT
     }//END of FUNCTION: writeForecast
 

@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
     implementation("org.tensorflow:tensorflow-lite:2.12.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.12.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

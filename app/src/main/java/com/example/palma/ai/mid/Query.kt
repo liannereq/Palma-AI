@@ -1,6 +1,8 @@
 package com.example.palma.ai.mid
 
+import android.content.Context
 import android.util.Log
+import com.example.palma.ai.TensorFlow.Type
 import com.example.palma.models.Message
 import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
@@ -25,14 +27,12 @@ class Query{
     private val curseKey = setOf("fuck", "fucking", "fucked", "shit", "bullshit", "damn", "hell", "piss", "pissed", "screw", "jackass", "asshole", "douche", "prick", "bastard", "dumbass", "moron", "idiot", "jerk", "tool", "pussy", "chicken", "coward", "weakling", "spineless", "scaredy-cat", "dick", "dickhead", "bitch", "cunt", "motherfucker", "fucker", "crap", "freaking", "frick", "heck", "darn")
 
     //START of FUNCTION: writeQuery
-    fun writeQuery(userKey: String, messageKey: String, message: String){
+    fun writeQuery(context: Context, userKey: String, messageKey: String, prompt: String){
         val messageReference = database.getReference("Palma/Message/$messageKey")
         val interrogative = setOf("what", "whats", "what's", "when", "where", "which", "who", "whom", "whose", "why", "how")
         val auxiliary = setOf("is", "are", "am", "was", "were", "do", "does", "did", "have", "has", "had", "can", "could", "would", "should", "will")
-        val ai = setOf("you", "your", "you're")
-        val userDataFields = setOf("username", "user", "name", "birthdate", "birthday", "birth", "gender", "sex", "email", "mail", "address", "mobile", "phone", "number", "contact")
         val queries = mutableListOf<String>()
-        val messages = message.lowercase().split(Regex("[?]+")).map{it.trim()}.filter{it.isNotEmpty()}
+        val messages = prompt.lowercase().split(Regex("[?]+")).map{it.trim()}.filter{it.isNotEmpty()}
 
         //START of FOR-LOOP:
         for(foundMessage in messages){
@@ -72,17 +72,9 @@ class Query{
                     //START of WHILE-LOOP:
                     while(queriesQueue.isNotEmpty()){
                         val query = queriesQueue.removeFirst()
+                        val classification = Type(context).typeQuery(prompt)
+
                         Log.d("query", query)
-
-                        val subList = query.split(Regex("[^\\w']+")).map{it.removeSuffix("s")}.filter{it.isNotBlank()}
-                        val isAiQuery = subList.any{it in ai} && subList.any{it in userDataFields}
-                        val isUserQuery = subList.any{it in userDataFields} && !subList.any{it in ai}
-                        val classification = when{
-                            isAiQuery -> "ai"
-                            isUserQuery -> "user"
-                            else -> "log"
-                        }
-
                         Log.d("classification", classification)
                         queryLog(userKey, messageKey, classification, query)
 
