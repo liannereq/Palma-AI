@@ -2,15 +2,15 @@ package com.example.palma.ai.index
 
 import android.content.Context
 import android.util.Log
+import com.example.palma.ai.TensorFlow.Build
 import com.example.palma.ai.TensorFlow.Classification
-import com.example.palma.ai.TensorFlow.Translator
 
 //START of CLASS: Command
 class Command{
     //START of FUNCTION: writeCommand:
     fun writeCommand(context: Context, userKey: String, messageKey: String, prompt: String){
         val classification = Classification(context).classifyCommand(prompt)
-        val command = Translator().command(prompt)
+        val command = Build().command(classification, prompt)
 
         //START of IF-STATEMENT
         if(classification == "list"){

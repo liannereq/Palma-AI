@@ -17,6 +17,7 @@ class Classification(context: Context){
     }
     private var classification = ""
 
+    //START of FUNCTION: classifyContext
     fun classifyContext(prompt: String): String{
 
         //START of IF-STATEMENT:
@@ -39,6 +40,9 @@ class Classification(context: Context){
         val hasQueryWords = if(
             Regex("what|who|where|when|how|tell").containsMatchIn(lower)
         ) 1f else 0f
+        val hasEtiquetteWords = if(
+            Regex("hi|hello|hey|thanks|thank|bye|goodbye|morning|evening|afternoon|care|later").containsMatchIn(lower)
+        ) 1f else 0f
         val inputFeatures = arrayOf(
             floatArrayOf(
                 countToken.toFloat(),
@@ -46,10 +50,11 @@ class Classification(context: Context){
                 hasQuestion,
                 hasCommandWords,
                 hasForecastWords,
-                hasQueryWords
+                hasQueryWords,
+                hasEtiquetteWords
             )
         )
-        val output = Array(1) { FloatArray(4) }
+        val output = Array(1){FloatArray(4)}
 
         //START of TRY:
         try{
@@ -62,15 +67,10 @@ class Classification(context: Context){
             return "none"
         }//END of CATCH
 
-        val prediction = output[0].indices.maxByOrNull { output[0][it] } ?: 2
+        val prediction = output[0].indices.maxByOrNull{output[0][it]} ?: 2
         val confidence = output[0][prediction]
 
-        //START of IF-STATEMENT:
-        if(confidence < 0.4f){
-            return "none"
-        }//END of IF-STATEMENT
-
-        val classification = when(prediction){
+        this.classification = when(prediction){
             0 -> "command"
             1 -> "etiquette"
             2 -> "query"
@@ -78,9 +78,9 @@ class Classification(context: Context){
             else -> "none"
         }
 
-        Log.d("context classification", "$classification (confidence: $confidence)")
-        return classification
-    }
+        Log.d("context classification", "${this.classification} (confidence: $confidence)")
+        return this.classification
+    }//END of FUNCTION: classifyContext
 
     //START of FUNCTION: interpretContext
     private fun interpretContext(context: Context, fileName: String): Interpreter{
@@ -97,35 +97,36 @@ class Classification(context: Context){
         return Interpreter(buffer, options)
     }//END of FUNCTION: interpretContext
 
-    // START of FUNCTION: classifyCommand
+    //START of FUNCTION: classifyCommand
     fun classifyCommand(prompt: String): String{
 
-        //START of IF-STATEMENT
-        if(prompt.isBlank()){
+        //START of IF-STATEMENT:
+        if (prompt.isBlank()) {
             Log.e("TF", "Command prompt is empty")
             return "default"
         }//END of IF-STATEMENT
 
-        val maxLength = 20
-        val tokens = prompt.lowercase().split("\\s+".toRegex()).map{it.trim()}
-        val floatSequence = FloatArray(maxLength){0f}
-
-        //START of FOR-LOOP:
-        for(i in tokens.indices){
-            if (i >= maxLength) break
-
-            var tokenId = tokens[i].hashCode() % 2000
-
-            if(tokenId < 0) tokenId += 2000
-            floatSequence[i] = tokenId.toFloat()
-        }//END of FOR-LOOP
-
-        val input = arrayOf(floatSequence)
-        val output = Array(1) { FloatArray(4) }
+        val lower = prompt.lowercase()
+        val tokens = Regex("\\S+").findAll(lower).map { it.value }.toList()
+        val countToken = tokens.size
+        val countCharacter = prompt.length
+        val hasListWords = if(tokens.any{it in setOf("list","grocery","shopping","task","milk","eggs","bread","apple","banana","item","load","create","make","add","remove","delete","open")}) 1f else 0f
+        val hasReminderWords = if(tokens.any{it in setOf("remind","reminder","daily","weekly","monthly","yearly","set","cancel","alarm","notify","wake","schedule")}) 1f else 0f
+        val hasContactWords = if(tokens.any{it in setOf("contact","email","group","user","ai","phone","john","alice","mike","palma","save","add","remove","delete")}) 1f else 0f
+        val inputFeatures = arrayOf(
+            floatArrayOf(
+                countToken.toFloat(),
+                countCharacter.toFloat(),
+                hasListWords,
+                hasReminderWords,
+                hasContactWords
+            )
+        )
+        val output = Array(1){FloatArray(4)}
 
         //START of TRY:
         try{
-            commandInterpreter.run(input, output)
+            commandInterpreter.run(inputFeatures, output)
         }//END of TRY
 
         //START of CATCH:
@@ -136,7 +137,6 @@ class Classification(context: Context){
 
         val prediction = output[0].indices.maxByOrNull{output[0][it]} ?: 3
         val confidence = output[0][prediction]
-
         this.classification = when(prediction){
             0 -> "list"
             1 -> "reminder"
