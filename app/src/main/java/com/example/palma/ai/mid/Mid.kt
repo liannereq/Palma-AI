@@ -114,7 +114,7 @@ class Mid{
         //START of IF-STATEMENT:
         if(list.any{it in curseKey}){
             Curse().writeCurse(userKey, messageKey, prompt)
-        }//END of IF-STATEMENT
+        }//END of IF-STATEMENT //
 
         //START of IF-STATEMENT:
         if(classification == "command"){
