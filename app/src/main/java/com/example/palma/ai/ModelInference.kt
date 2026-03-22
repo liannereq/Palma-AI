@@ -1,10 +1,11 @@
 package com.example.palma.ai
 
 import android.content.Context
+import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import kotlin.math.exp
+import kotlin.random.Random
 
 /**
  * ModelInference: Handles TFLite model loading and inference execution.
@@ -13,8 +14,8 @@ import java.nio.ByteOrder
 class ModelInference(private val context: Context) {
     private var interpreter: Interpreter? = null
     private lateinit var tokenizer: SentencePieceTokenizer
-    private val vocabSize = 8000
-    private val maxSeqLength = 256
+    private var vocabSize = 8000
+    private var expectsInt64Input = false
     
     init {
         loadModel(context)
@@ -35,25 +36,21 @@ class ModelInference(private val context: Context) {
             // options.addDelegate(gpuDelegate)
             
             interpreter = Interpreter(modelBuffer, options)
+
+            // Introspect model IO so runtime code follows the exported model contract.
+            val inputTensor = interpreter!!.getInputTensor(0)
+            val outputTensor = interpreter!!.getOutputTensor(0)
+            expectsInt64Input = inputTensor.dataType() == DataType.INT64
+            val outShape = outputTensor.shape()
+            vocabSize = outShape.last()
+
             println("✓ Model loaded successfully")
         } catch (e: Exception) {
             throw RuntimeException("Failed to load model: ${e.message}", e)
         }
     }
     
-    /**
-     * Generate a response using the model.
-     * 
-     * ============================================
-     * AGENT RESPONSE LOCATION:
-     * The response is stored in the val response variable.
-     * This can be retrieved and used in your Activity like:
-     * 
-     *     onSuccess(response)  // Pass to callback
-     *     updateUI(response)   // Update UI elements
-     *     sendToServer(response) // Send to backend
-     * ============================================
-     */
+
     fun generateResponse(
         prompt: String,
         maxTokens: Int = 50,
@@ -75,38 +72,39 @@ class ModelInference(private val context: Context) {
         
         // Generate tokens iteratively
         for (step in 0 until maxTokens) {
-            // Prepare input: take the last token
             val nextInputToken = currentSequence.last()
-            val inputBuffer = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder())
-            inputBuffer.putInt(nextInputToken)
-            inputBuffer.rewind()
-            
-            // Prepare output buffer (8000 logits)
-            val outputBuffer = ByteBuffer.allocateDirect(vocabSize * 4)
-                .order(ByteOrder.nativeOrder())
+            val inputObject: Any = if (expectsInt64Input) {
+                arrayOf(longArrayOf(nextInputToken.toLong()))
+            } else {
+                arrayOf(intArrayOf(nextInputToken))
+            }
+            val outputObject = Array(1) { Array(1) { FloatArray(vocabSize) } }
             
             // Run inference
             try {
-                interpreter!!.run(inputBuffer, outputBuffer)
+                interpreter!!.run(inputObject, outputObject)
             } catch (e: Exception) {
                 throw RuntimeException("Inference failed at step $step: ${e.message}", e)
             }
             
-            // Process logits
-            outputBuffer.rewind()
-            val logits = FloatArray(vocabSize)
-            outputBuffer.asFloatBuffer().get(logits)
+            val logits = outputObject[0][0]
             
             // Apply temperature
-            val scaledLogits = logits.map { it / temperature }.toFloatArray()
+            val safeTemp = if (temperature <= 1e-6f) 1e-6f else temperature
+            val scaledLogits = logits.map { it / safeTemp }.toFloatArray()
             
-            // Apply softmax for probabilities
-            val expLogits = scaledLogits.map { kotlin.math.exp(it) }.toFloatArray()
+            // Numerically stable softmax
+            val maxLogit = scaledLogits.maxOrNull() ?: 0f
+            val expLogits = scaledLogits.map { exp(it - maxLogit) }.toFloatArray()
             val sumExp = expLogits.sum()
-            val probabilities = expLogits.map { it / sumExp }.toFloatArray()
+            val probabilities = if (sumExp > 0f) {
+                expLogits.map { it / sumExp }.toFloatArray()
+            } else {
+                FloatArray(vocabSize) { 1f / vocabSize }
+            }
             
             // Sample top-k token (or use greedy if k >= vocab size)
-            val nextToken = if (topK >= vocabSize) {
+            val nextToken = if (topK <= 1 || topK >= vocabSize) {
                 // Greedy: take highest probability
                 probabilities.indices.maxByOrNull { probabilities[it] } ?: 1
             } else {
@@ -121,8 +119,7 @@ class ModelInference(private val context: Context) {
                 val normalizedProbs = topKProbs.map { it / sum }.toFloatArray()
                 
                 // Sample from top-k
-                val random = kotlin.math.random.Random()
-                var r = random.nextFloat()
+                var r = Random.nextFloat()
                 var selected = topKIndices[0]
                 for (i in normalizedProbs.indices) {
                     r -= normalizedProbs[i]
@@ -141,15 +138,7 @@ class ModelInference(private val context: Context) {
             if (nextToken == 0 || nextToken == 1) break
         }
         
-        // ============================================
-        // IMPORTANT: This is where the agent response is stored
-        // You can use this variable to:
-        // - Store in a database
-        // - Send to a server
-        // - Display in UI
-        // - Process further
         val response = tokenizer.decode(outputTokens.toIntArray())
-        // ============================================
         
         return response
     }

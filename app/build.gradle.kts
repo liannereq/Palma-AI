@@ -1,7 +1,18 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.gms.google.services) apply false
+}
+
+val hasGoogleServicesJson = listOf(
+    file("google-services.json"),
+    file("src/google-services.json"),
+    file("src/debug/google-services.json"),
+    file("src/release/google-services.json")
+).any { it.exists() }
+
+if (hasGoogleServicesJson) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -40,6 +51,12 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    packaging {
+        resources {
+            excludes += "META-INF/native-image/**"
+        }
+    }
 }
 
 dependencies {
@@ -63,6 +80,7 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("org.bytedeco:sentencepiece-platform:0.2.1-1.5.13")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

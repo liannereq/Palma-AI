@@ -1,103 +1,60 @@
 package com.example.palma.ai
 
 import android.content.Context
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.File
+import org.bytedeco.sentencepiece.IntVector
+import org.bytedeco.sentencepiece.SentencePieceProcessor
 
-/**
- * SentencePieceTokenizer: Wrapper for SentencePiece tokenization.
- * Loads vocabulary from assets and provides encode/decode functionality.
- */
 class SentencePieceTokenizer(context: Context) {
-    private val vocabulary = mutableMapOf<String, Int>()
-    private val reverseVocab = mutableMapOf<Int, String>()
-    private val unkToken = "<unk>"
-    private val padToken = "<pad>"
+    private val processor: SentencePieceProcessor
     
     init {
-        loadVocabulary(context)
+        val modelPath = copyModelToInternalStorage(context)
+        processor = SentencePieceProcessor()
+        processor.LoadOrDie(modelPath)
     }
     
-    /**
-     * Load SentencePiece vocabulary from assets
-     */
-    private fun loadVocabulary(context: Context) {
+    private fun copyModelToInternalStorage(context: Context): String {
         try {
-            val assetManager = context.assets
-            val inputStream = assetManager.open("spm_vocab.txt")
-            
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                var tokenId = 0
-                var line: String?
-                
-                while (reader.readLine().also { line = it } != null) {
-                    val parts = line!!.trim().split("\t")
-                    
-                    if (parts.isNotEmpty()) {
-                        val token = parts[0]
-                        vocabulary[token] = tokenId
-                        reverseVocab[tokenId] = token
-                        tokenId++
+            val outFile = File(context.filesDir, "spm_8k.model")
+            if (!outFile.exists()) {
+                context.assets.open("spm_8k.model").use { input ->
+                    outFile.outputStream().use { output ->
+                        input.copyTo(output)
                     }
                 }
             }
-            
-            inputStream.close()
-            println("✓ Vocabulary loaded: ${vocabulary.size} tokens")
-            
+            return outFile.absolutePath
         } catch (e: Exception) {
-            throw RuntimeException("Failed to load vocabulary: ${e.message}", e)
+            throw RuntimeException("Failed to prepare SentencePiece model: ${e.message}", e)
         }
     }
-    
-    /**
-     * Tokenize text into token IDs
-     */
+
     fun tokenize(text: String): IntArray {
-        // Simple whitespace tokenization
-        // For production, use official SentencePiece library or export tokens
-        val tokens = text.split(Regex("\\s+"))
-            .filter { it.isNotEmpty() }
-            .map { word ->
-                vocabulary[word] ?: vocabulary[unkToken] ?: 1 // Fallback to UNK
+        try {
+            val ids: IntVector = processor.EncodeAsIds(text)
+            val size = ids.size().toInt()
+            val result = IntArray(size)
+
+            for (i in 0 until size) {
+                result[i] = ids.get(i.toLong())
             }
-            .toIntArray()
-        
-        return tokens
-    }
-    
-    /**
-     * Decode token IDs back to text
-     */
-    fun decode(tokenIds: IntArray): String {
-        val tokens = tokenIds.mapNotNull { id ->
-            reverseVocab[id]?.let { token ->
-                // Remove special tokens and sentencepiece markers
-                when {
-                    token.startsWith("▁") || token.startsWith("_") -> 
-                        " " + token.drop(1)
-                    token.startsWith("<") && token.endsWith(">") -> 
-                        ""  // Skip special tokens like <pad>, <unk>
-                    else -> token
-                }
-            }
+
+            return result
+        } catch (e: Exception) {
+            throw RuntimeException("SentencePiece encode failed: ${e.message}", e)
         }
-        
-        return tokens.joinToString("").trim()
     }
     
-    /**
-     * Get vocabulary size
-     */
-    fun getVocabSize(): Int = vocabulary.size
-    
-    /**
-     * Get token ID for a specific string
-     */
-    fun getTokenId(token: String): Int? = vocabulary[token]
-    
-    /**
-     * Get token string for a specific ID
-     */
-    fun getToken(id: Int): String? = reverseVocab[id]
+    fun decode(tokenIds: IntArray): String {
+        try {
+            val ids = IntVector(tokenIds.size.toLong())
+            for (i in tokenIds.indices) {
+                ids.put(i.toLong(), tokenIds[i])
+            }
+            return processor.DecodeIds(ids)
+        } catch (e: Exception) {
+            throw RuntimeException("SentencePiece decode failed: ${e.message}", e)
+        }
+    }
 }
