@@ -27,14 +27,14 @@ class ModelInference(private val context: Context) {
      */
     private fun loadModel(context: Context) {
         try {
-            val modelBuffer = FileUtil.loadMappedFile(context, "model_quantized.tflite")
+            val modelBuffer = FileUtil.loadMappedFile(context, "model_float32.tflite")
             val options = Interpreter.Options()
             options.setNumThreads(4)  // Adjust based on device cores
             
             // Uncomment for GPU acceleration (requires GPU delegate dependency)
             // val gpuDelegate = GpuDelegate()
             // options.addDelegate(gpuDelegate)
-            
+
             interpreter = Interpreter(modelBuffer, options)
 
             // Introspect model IO so runtime code follows the exported model contract.
