@@ -74,7 +74,7 @@ class Palma{
 
         //START of IF-STATEMENT:
         if(classification != "command"){
-            Torch().torch(aiKey, messageKey, prompt)
+            Torch().torch(context, aiKey, messageKey, prompt)
         }//END of IF-STATEMENT
 
         //START of IF-STATEMENT:
